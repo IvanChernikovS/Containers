@@ -12,14 +12,20 @@ void Print(List<T>&& list)
 int main()
 {
     List<int> list;
-    list.AddFront(3);
-    list.AddFront(2);
-    list.AddBack(5);
-    list.AddBack(6);
-    list.Add(2,4);
+    list.AddFront(new int(3));
+    list.AddFront(new int(2));
+    list.AddBack(new int(5));
+    list.AddBack(new int(6));
+    list.Add(2,new int(4));
 
     list.RemoveFront();
     list.RemoveBack();
+    list.Remove(1);
+
+    list.Print();
+    list.PrintReverse();
+
+    list.Reverse();
 
     list.Print();
     list.PrintReverse();

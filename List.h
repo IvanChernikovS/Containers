@@ -12,19 +12,21 @@ class List
 private:
     struct Node
     {
-        explicit Node(T _data = T(),
-                        Node* _nextPtr = nullptr,
-                        Node* _prevPtr = nullptr)
+        explicit Node(T* _data = nullptr,
+                      Node* _nextPtr = nullptr,
+                      Node* _prevPtr = nullptr)
         :Data(_data), nextPtr(_nextPtr), prevPtr(_prevPtr)
         {}
 
         ~Node() noexcept
         {
+            Data    = nullptr;
+
             nextPtr = nullptr;
             prevPtr = nullptr;
         }
 
-        T Data;
+        T* Data         = nullptr;
 
         Node* nextPtr   = nullptr;
         Node* prevPtr   = nullptr;
@@ -32,7 +34,7 @@ private:
 
 public:
     explicit List()                         = default;
-    ~List();
+    virtual ~List();
 
     List(const List&)                       = delete;
     List(List&&)                noexcept    = delete;
@@ -40,22 +42,25 @@ public:
     List& operator= (const List&)           = delete;
     List& operator= (List&&)    noexcept    = delete;
 
-    T& operator[] (int index) const;
+    T& operator[] (int index)   const;
 
-    void Print() const;
-    void PrintReverse() const;
+    virtual void Print()        const;
+    virtual void PrintReverse() const;
 
-    int Size() const { return size; }
+    int          Size()         const { return size; }
+    bool         Empty()        const { return size == 0; }
 
-    void Clear();
+    void         Clear();
 
-    void AddFront(T _data);
-    void AddBack(T _data);
-    void Add(int _pos, T _data);
+    virtual void AddFront(T* _data);
+    virtual void AddBack(T* _data);
+    virtual void Add(int _pos, T* _data);
 
-    void RemoveFront();
-    void RemoveBack();
-//    void Remove(int _pos);
+    virtual void RemoveFront();
+    virtual void RemoveBack();
+    virtual void Remove(int _pos);
+
+    virtual void Reverse();
 
 private:
     int size    = 0;
@@ -78,7 +83,7 @@ inline T& List<T>::operator[] (int index) const
     {
         if(counter == index)
         {
-            return current->Data;
+            return *current->Data;
         }
         current = current->nextPtr;
         ++counter;
@@ -93,7 +98,7 @@ void List<T>::Print() const
 
     for(auto it = head; it != nullptr; it = it->nextPtr)
     {
-        std::cout << it->Data << " ";
+        std::cout << *it->Data << " ";
     }
     std::cout << std::endl;
 }
@@ -112,7 +117,7 @@ void List<T>::PrintReverse() const
 
     for(auto it = current; it != nullptr; it = it->prevPtr)
     {
-        std::cout << it->Data << " ";
+        std::cout << *it->Data << " ";
     }
     std::cout << std::endl;
 }
@@ -127,7 +132,7 @@ void List<T>::Clear()
 }
 
 template<class T>
-void List<T>::AddFront(T _data)
+void List<T>::AddFront(T* _data)
 {
     if(!head)
     {
@@ -142,7 +147,7 @@ void List<T>::AddFront(T _data)
 }
 
 template<class T>
-void List<T>::AddBack(T _data)
+void List<T>::AddBack(T* _data)
 {
     if(!head)
     {
@@ -163,12 +168,11 @@ void List<T>::AddBack(T _data)
 }
 
 template<class T>
-void List<T>::Add(int _pos, T _data)
+void List<T>::Add(int _pos, T* _data)
 {
     if(!head)
     {
         head = new Node(_data);
-        ++size;
     }
     else
     {
@@ -180,7 +184,7 @@ void List<T>::Add(int _pos, T _data)
         {
             Node* current = head;
 
-            for(auto i = 0; i <= _pos - 1; ++i)
+            for(auto i = 0; i < _pos; ++i)
             {
                 current = current->nextPtr;
             }
@@ -188,11 +192,9 @@ void List<T>::Add(int _pos, T _data)
             Node* newNode = new Node(_data, current, current->prevPtr);
             current->prevPtr->nextPtr = newNode;
             current->prevPtr = newNode;
-            //current = nullptr;
-            //newNode = nullptr;
-            ++size;
         }
     }
+    ++size;
 }
 
 template<class T>
@@ -204,6 +206,7 @@ void List<T>::RemoveFront()
     Node* tmp = head;
     head = head->nextPtr;
     head->prevPtr = nullptr;
+
     delete tmp;
     --size;
 }
@@ -220,9 +223,57 @@ void List<T>::RemoveBack()
     {
         current = current->nextPtr;
     }
-
     current->prevPtr->nextPtr = nullptr;
-    delete current;
 
+    delete current;
     --size;
+}
+
+template<class T>
+void List<T>::Remove(int _pos)
+{
+    if(!head)
+        return;
+
+    if(_pos == 0)
+    {
+        RemoveFront();
+    }
+    else
+    {
+        Node* current = head;
+
+        for(auto i = 0; i < _pos; ++i)
+        {
+            current = current->nextPtr;
+        }
+
+        current->prevPtr->nextPtr = current->nextPtr;
+        current->nextPtr->prevPtr = current->prevPtr;
+
+        delete current;
+        --size;
+    }
+}
+
+template<class T>
+void List<T>::Reverse()
+{
+    if(!head)
+        return;
+
+    Node* tempHead = head;
+    Node* current = tempHead->nextPtr;
+    tempHead->nextPtr = nullptr;
+    tempHead->prevPtr = current;
+
+    while(current)
+    {
+        Node* tmp = current->nextPtr;
+        current->nextPtr = tempHead;
+        current->prevPtr = tmp;
+        tempHead = current;
+        current = tmp;
+    }
+    head = tempHead;
 }
