@@ -1,4 +1,5 @@
 #include <iostream>
+#include <list>
 
 #include "List.h"
 
@@ -11,25 +12,16 @@ void Print(List<T>&& list)
 
 int main()
 {
-    List<int> list;
-    list.AddFront(new int(3));
-    list.AddFront(new int(2));
-    list.AddBack(new int(5));
-    list.AddBack(new int(6));
-    list.Add(2,new int(4));
+    List<int> list{1, 3, 4, 5, 6, 7, 8, 9};
+    list.AddFront(0);
+    list.AddBack(10);
+    list.Add(2,2);
 
-    list.RemoveFront();
-    list.RemoveBack();
-    list.Remove(1);
-
-    list.Print();
-    list.PrintReverse();
+    list.Remove(0);
+    list.Remove(9);
 
     list.Reverse();
 
     list.Print();
     list.PrintReverse();
-
-    std::cout << list.Size() << std::endl;
-    Print(std::move(list));
 }

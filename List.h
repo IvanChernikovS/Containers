@@ -12,7 +12,7 @@ class List
 private:
     struct Node
     {
-        explicit Node(T* _data = nullptr,
+        explicit Node(T _data = T(),
                       Node* _nextPtr = nullptr,
                       Node* _prevPtr = nullptr)
         :Data(_data), nextPtr(_nextPtr), prevPtr(_prevPtr)
@@ -20,13 +20,11 @@ private:
 
         ~Node() noexcept
         {
-            Data    = nullptr;
-
             nextPtr = nullptr;
             prevPtr = nullptr;
         }
 
-        T* Data         = nullptr;
+        T Data;
 
         Node* nextPtr   = nullptr;
         Node* prevPtr   = nullptr;
@@ -34,7 +32,8 @@ private:
 
 public:
     explicit List()                         = default;
-    virtual ~List();
+    List(std::initializer_list<T> _il);
+    ~List() noexcept                        { Clear(); }
 
     List(const List&)                       = delete;
     List(List&&)                noexcept    = delete;
@@ -44,23 +43,28 @@ public:
 
     T& operator[] (int index)   const;
 
-    virtual void Print()        const;
-    virtual void PrintReverse() const;
+    void Print()                const;
+    void PrintReverse()         const;
 
     int          Size()         const { return size; }
-    bool         Empty()        const { return size == 0; }
+    bool         IsEmpty()      const { return size == 0; }
 
     void         Clear();
 
-    virtual void AddFront(T* _data);
-    virtual void AddBack(T* _data);
-    virtual void Add(int _pos, T* _data);
+    void AddFront(T _data);
+    void AddBack(T _data);
+    void Add(int _pos, T _data);
 
-    virtual void RemoveFront();
-    virtual void RemoveBack();
-    virtual void Remove(int _pos);
+    void RemoveFront();
+    void RemoveBack();
+    void Remove(int _pos);
 
-    virtual void Reverse();
+    void Reverse();
+    //void Unique();
+    //void Remove_if();
+    //void Merge();
+    //void Sort();
+    //void Swap();
 
 private:
     int size    = 0;
@@ -68,9 +72,12 @@ private:
 };
 
 template<class T>
-List<T>::~List()
+List<T>::List(std::initializer_list<T> _il)
 {
-    Clear();
+    for(typename std::initializer_list<T>::const_iterator it = _il.begin(); it != _il.end(); ++it)
+    {
+        AddBack(*it);
+    }
 }
 
 template<class T>
@@ -83,7 +90,7 @@ inline T& List<T>::operator[] (int index) const
     {
         if(counter == index)
         {
-            return *current->Data;
+            return current->Data;
         }
         current = current->nextPtr;
         ++counter;
@@ -98,7 +105,7 @@ void List<T>::Print() const
 
     for(auto it = head; it != nullptr; it = it->nextPtr)
     {
-        std::cout << *it->Data << " ";
+        std::cout << it->Data << " ";
     }
     std::cout << std::endl;
 }
@@ -117,7 +124,7 @@ void List<T>::PrintReverse() const
 
     for(auto it = current; it != nullptr; it = it->prevPtr)
     {
-        std::cout << *it->Data << " ";
+        std::cout << it->Data << " ";
     }
     std::cout << std::endl;
 }
@@ -132,9 +139,9 @@ void List<T>::Clear()
 }
 
 template<class T>
-void List<T>::AddFront(T* _data)
+void List<T>::AddFront(T _data)
 {
-    if(!head)
+    if(!head && size == 0)
     {
         head = new Node(_data);
     }
@@ -147,7 +154,7 @@ void List<T>::AddFront(T* _data)
 }
 
 template<class T>
-void List<T>::AddBack(T* _data)
+void List<T>::AddBack(T _data)
 {
     if(!head)
     {
@@ -168,7 +175,7 @@ void List<T>::AddBack(T* _data)
 }
 
 template<class T>
-void List<T>::Add(int _pos, T* _data)
+void List<T>::Add(int _pos, T _data)
 {
     if(!head)
     {
@@ -203,11 +210,18 @@ void List<T>::RemoveFront()
     if(!head)
         return;
 
-    Node* tmp = head;
-    head = head->nextPtr;
-    head->prevPtr = nullptr;
+    if(size == 1)
+    {
+        delete head;
+    }
+    else
+    {
+        Node* tmp = head;
+        head = head->nextPtr;
+        head->prevPtr = nullptr;
 
-    delete tmp;
+        delete tmp;
+    }
     --size;
 }
 
@@ -217,15 +231,22 @@ void List<T>::RemoveBack()
     if(!head)
         return;
 
-    Node* current = head;
-
-    while(current->nextPtr)
+    if(size == 1)
     {
-        current = current->nextPtr;
+        delete head;
     }
-    current->prevPtr->nextPtr = nullptr;
+    else
+    {
+        Node* current = head;
 
-    delete current;
+        while(current->nextPtr)
+        {
+            current = current->nextPtr;
+        }
+        current->prevPtr->nextPtr = nullptr;
+
+        delete current;
+    }
     --size;
 }
 
@@ -239,19 +260,30 @@ void List<T>::Remove(int _pos)
     {
         RemoveFront();
     }
+    else if(_pos == Size() - 1)
+    {
+        RemoveBack();
+    }
     else
     {
-        Node* current = head;
-
-        for(auto i = 0; i < _pos; ++i)
+        if(size == 1)
         {
-            current = current->nextPtr;
+            delete head;
         }
+        else
+        {
+            Node* current = head;
 
-        current->prevPtr->nextPtr = current->nextPtr;
-        current->nextPtr->prevPtr = current->prevPtr;
+            for(auto i = 0; i < _pos; ++i)
+            {
+                current = current->nextPtr;
+            }
 
-        delete current;
+            current->prevPtr->nextPtr = current->nextPtr;
+            current->nextPtr->prevPtr = current->prevPtr;
+
+            delete current;
+        }
         --size;
     }
 }
@@ -259,7 +291,7 @@ void List<T>::Remove(int _pos)
 template<class T>
 void List<T>::Reverse()
 {
-    if(!head)
+    if(!head || size == 1)
         return;
 
     Node* tempHead = head;
