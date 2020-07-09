@@ -9,6 +9,9 @@
 template<class T>
 class List
 {
+    template<class TYPE>
+    friend std::ostream& operator<< (std::ostream& out, const List<TYPE>& i);
+
 private:
     struct Node
     {
@@ -40,16 +43,18 @@ public:
 
     List& operator= (const List&)           = delete;
     List& operator= (List&&)    noexcept    = delete;
-
     T& operator[] (int index)   const;
 
     void Print()                const;
     void PrintReverse()         const;
 
-    int          Size()         const { return size; }
-    bool         IsEmpty()      const { return size == 0; }
+    int  Size()                 const { return size; }
+    bool IsEmpty()              const { return size == 0; }
 
-    void         Clear();
+    auto Front()                const { return head; }
+    auto Back()                 const;
+
+    void Clear();
 
     void AddFront(T _data);
     void AddBack(T _data);
@@ -78,6 +83,13 @@ List<T>::List(std::initializer_list<T> _il)
     {
         AddBack(*it);
     }
+}
+
+template<class TYPE>
+std::ostream& operator<< (std::ostream& out, const List<TYPE>& i)
+{
+    i.Print();
+    return out;
 }
 
 template<class T>
@@ -116,17 +128,23 @@ void List<T>::PrintReverse() const
     if(!head)
         return;
 
+    for(auto it = Back(); it != nullptr; it = it->prevPtr)
+    {
+        std::cout << it->Data << " ";
+    }
+    std::cout << std::endl;
+}
+
+template<class T>
+auto List<T>::Back() const
+{
     Node* current = head;
     while(current->nextPtr)
     {
         current = current->nextPtr;
     }
 
-    for(auto it = current; it != nullptr; it = it->prevPtr)
-    {
-        std::cout << it->Data << " ";
-    }
-    std::cout << std::endl;
+    return current;
 }
 
 template<class T>
@@ -162,13 +180,7 @@ void List<T>::AddBack(T _data)
     }
     else
     {
-        Node* current = head;
-
-        while(current->nextPtr)
-        {
-            current = current->nextPtr;
-        }
-
+        Node* current = Back();
         current->nextPtr = new Node(_data, nullptr, current);
     }
     ++size;
@@ -237,12 +249,7 @@ void List<T>::RemoveBack()
     }
     else
     {
-        Node* current = head;
-
-        while(current->nextPtr)
-        {
-            current = current->nextPtr;
-        }
+        Node* current = Back();
         current->prevPtr->nextPtr = nullptr;
 
         delete current;
