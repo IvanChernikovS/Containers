@@ -79,7 +79,7 @@ private:
 template<class T>
 List<T>::List(std::initializer_list<T> _il)
 {
-    for(typename std::initializer_list<T>::const_iterator it = _il.begin(); it != _il.end(); ++it)
+    for(const auto* it = _il.begin(); it != _il.end(); ++it)
     {
         AddBack(*it);
     }
@@ -189,7 +189,11 @@ void List<T>::AddBack(T _data)
 template<class T>
 void List<T>::Add(int _pos, T _data)
 {
-    if(!head)
+    if(_pos < 0 || _pos > size - 1)
+    {
+        return;
+    }
+    else if(!head)
     {
         head = new Node(_data);
     }
@@ -260,7 +264,7 @@ void List<T>::RemoveBack()
 template<class T>
 void List<T>::Remove(int _pos)
 {
-    if(!head)
+    if(!head || (_pos < 0 || _pos > size - 1))
         return;
 
     if(_pos == 0)
